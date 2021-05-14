@@ -14,7 +14,23 @@ decryptCaesar :: Int -> [Char] -> [Char]
 decryptCaesar key word = map (\x -> toEnum $ fromEnum x - key) word
 
 -- Vignere Chiffre
-let rotation = [a, b, c, d, e, f, g, h, i , j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z]
+
+asciiCapitalLetter x = 65 <= x && x <= 90  
+asciiSmallLetter x = 97 <= x && x <= 122
+toSmallLetter x = if asciiSmallLetter x then x else x + 32
+toAlphaIndex a = if asciiSmallLetter (fromEnum a) then (fromEnum a) - 97 else (fromEnum a) - 65
+
 
 encryptVigenere :: [Char] -> [Char] -> [Char]
-encryptVigenere secret word = map ...........
+encryptVigenere word key = [encrypt x y | (x, y) <- zip word (cycle  key)]
+
+encrypt x y | asciiSmallLetter   (fromEnum x) = toEnum (mod (toAlphaIndex x + toAlphaIndex y) 26 + 97)
+            | asciiCapitalLetter (fromEnum x) = toEnum (mod (toAlphaIndex x + toAlphaIndex y) 26 + 65)
+            | otherwise = x
+ 
+decryptVigenere :: [Char] -> [Char] -> [Char]
+decryptVigenere word key = [decrypt x y | (x, y) <- zip word (cycle  key)]
+
+decrypt x y | asciiSmallLetter   (fromEnum x) = toEnum (mod (toAlphaIndex x - toAlphaIndex y) 26 + 97)
+            | asciiCapitalLetter (fromEnum x) = toEnum (mod (toAlphaIndex x - toAlphaIndex y) 26 + 65)
+            | otherwise = x
