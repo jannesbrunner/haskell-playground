@@ -22,6 +22,8 @@ asciiSmallLetter x = 97 <= x && x <= 122
 toSmallLetter x = if asciiSmallLetter x then x else x + 32
 toAlphaIndex a = if asciiSmallLetter (fromEnum a) then (fromEnum a) - 97 else (fromEnum a) - 65
 
+filterWhitespace :: [Char] -> [Char]
+filterWhitespace = filter (\a -> fromEnum a /= 32)
 
 encryptVigenere :: [Char] -> [Char] -> [Char]
 encryptVigenere word key = [encrypt x y | (x, y) <- zip word (cycle key)]
