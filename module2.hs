@@ -7,7 +7,8 @@ Content:
 
 --}
 
--- Casar-Chiffre (shifting in ASCII Table)
+groupFive :: [Char] -> [Char]
+groupFive x = if length x > 5 then take 5 x ++ [' '] ++ groupFive (drop 5 x) else x
 encryptCaesar :: Int -> [Char] -> [Char]
 encryptCaesar key = map (\x -> toEnum $ fromEnum x + key)
 
