@@ -9,11 +9,19 @@ Content:
 
 groupFive :: [Char] -> [Char]
 groupFive x = if length x > 5 then take 5 x ++ [' '] ++ groupFive (drop 5 x) else x
+-- Casar-Chiffre
+
 encryptCaesar :: Int -> [Char] -> [Char]
-encryptCaesar key = map (\x -> toEnum $ fromEnum x + key)
+encryptCaesar key word = groupFive (map (caesarizer True key) (filterWhitespace word))
+
+caesarizer up key x | up && asciiCapitalLetter (fromEnum x) = toEnum (mod (toAlphaIndex x + key) 26 + 65)
+                    | up && asciiSmallLetter (fromEnum x) = toEnum (mod (toAlphaIndex x + key) 26 + 97)
+                    | not up && asciiCapitalLetter (fromEnum x) = toEnum ( mod (toAlphaIndex x - key) 26 + 65)
+                    | not up && asciiSmallLetter (fromEnum x) = toEnum ( mod (toAlphaIndex x - key) 26 + 97)
+                    | otherwise = x
 
 decryptCaesar :: Int -> [Char] -> [Char]
-decryptCaesar key = map (\x -> toEnum $ fromEnum x - key)
+decryptCaesar key word = map (caesarizer False key) (filterWhitespace word)
 
 -- Vignere Chiffre (bound to a=0 .. z=25)
 
