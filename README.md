@@ -74,6 +74,10 @@ Then clone the project and `cd` into the project dir.
   * Casar Chiffre encoding / decoding
   * Vignere Chiffre encoding / decoding
 
+ * module3
+   * implementation of interval map data type
+   * functors of interval map
+
 <!-- USAGE EXAMPLES -->
 ## Usage
 
