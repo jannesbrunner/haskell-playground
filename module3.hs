@@ -21,3 +21,9 @@ rangeChanger :: (Num a1, Enum a1, Ord a1) => [a2] -> a1 -> a1 -> a2 -> [a2]
 rangeChanger iMapValues start end value = [if (i >= start) && (i <= end) then newValue else iMapValue | (iMapValue, newValue, i) <- zip3 iMapValues (repeat value) [0..]]
 
 
+-- functor instance for intervalMap
+instance Functor (IntervalMap k) where
+    -- fmap :: (a -> b) -> f a -> f b 
+    fmap f iMap = IntervalMap {keys=keys iMap, values= map f (values iMap) }
+
+
