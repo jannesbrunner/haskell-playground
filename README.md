@@ -78,6 +78,12 @@ Then clone the project and `cd` into the project dir.
    * implementation of interval map data type
    * functors of interval map
 
+* module4
+  * Contact organizer program
+  * CRUD contacts
+  * search by first name || by last name
+  * save on disk
+
 <!-- USAGE EXAMPLES -->
 ## Usage
 
