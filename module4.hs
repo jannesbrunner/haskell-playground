@@ -1,5 +1,8 @@
+import Data.String
+
 -- Contact organizer
 
+-- DATA DEFINITION
 data Person = Person { firstName :: String,
                 lastName :: String,
                 aStreet :: String,
@@ -7,7 +10,7 @@ data Person = Person { firstName :: String,
                 aZip :: String,
                 city :: String,
                 phone :: String
-                } 
+                }
 
 instance Show Person where
    show a = "First Name: " ++ firstName a ++ "\n" ++
@@ -18,71 +21,89 @@ instance Show Person where
             "City: "  ++ lastName a ++ "\n" ++
             "Phone: " ++  phone a ++ "\n"
 
-savePerson a = firstName a ++ " " ++
-            lastName a ++ " " ++
-            aStreet a ++ " " ++
-            aNumber a ++ " " ++
-            aZip a ++ " " ++
-            city a ++ " " ++
+savePerson a = firstName a ++ "," ++
+            lastName a ++ "," ++
+            aStreet a ++ "," ++
+            aNumber a ++ "," ++
+            aZip a ++ "," ++
+            city a ++ "," ++
             phone a
 
--- CRUD
-
--- Create a new person
-
--- Read all persons
+printPerson a = firstName a ++ ", " ++
+            lastName a ++ ", " ++
+            aStreet a ++ ", " ++
+            aNumber a ++ ", " ++
+            aZip a ++ ", " ++
+            city a ++ ", " ++
+            phone a
 
 showContacts :: [Person] -> IO()
 showContacts contacts =
-        putStrLn "ID, First Name, Last Name, Street, Street Number, ZIP, City, Phone"
+        putStrLn "ID: First Name, Last Name, Street, Street Number, ZIP, City, Phone"
         >>
-        mapM_ (\x -> print ((show (fst x)) ++ " " ++ (savePerson (snd x)))) ((zip [0 ..]) contacts)
+        mapM_ (\x -> print ((show (fst x)) ++ ": " ++ (printPerson (snd x)))) ((zip [0 ..]) contacts)
         >> start contacts
 
-
-
-
-makeItPerson :: [String] -> Person
-makeItPerson x = Person (x !! 0) (x !! 1) (x !! 2) (x !! 3) (x !! 4) (x !! 5) (x !! 6)              
-
+-- loadContacts
 loadContactsAsList ::IO()
 loadContactsAsList = do
             contents <- readFile "./contacts.txt"
             let linesOfFiles = lines contents
-            let contacts = [makeItPerson (words x) | x <- linesOfFiles]
+            let contacts = [makeItPerson (wordsWhen (==',') x) | x <- linesOfFiles]
             start contacts
 
-savePersons = do
-        let person1 = Person "Theodor" "Tester" "TestStrasse" "47" "12345" "Hamburg" "1233424324"
-        let person2 = Person "Tatja" "Testerin" "Strasse" "34" "12432" "Berlin" "213432432"
-        let persons = [savePerson person1, savePerson person2]
-        let content = unlines persons
+makeItPerson :: [String] -> Person
+makeItPerson x = Person (head x) (x !! 1) (x !! 2) (x !! 3) (x !! 4) (x !! 5) (x !! 6)
+
+-- saveContacts
+savePersons :: [Person] -> IO()
+savePersons contacts = do
+        let toSave = map savePerson contacts
+        let content = unlines toSave
         writeFile "./contacts.txt" content
 
--- addContactInput :: IO()
--- addContactInput = do
---     putStrLn "Please Enter First Name:"
---     fName <- getLine
---     putStrLn "Please Enter Last Name:"
---     lName <- getLine
---     putStrLn "Please Enter Street:"
---     street <- getLine
---     putStrLn "Please Enter Street Number:"
---     streetNumber <- getLine
---     putStrLn "Please Enter ZIP:"
---     lzip <- getLine
---     putStrLn "Please Enter City:"
---     city <- getLine
---     putStrLn "Please Enter Number:"
---     number <- getLine
+-- Create a new contact in memory
+addContact :: [Person] -> IO ()
+addContact contacts = do
+        putStrLn "Please Enter new Contact details:"
+        putStrLn "First Name, Last Name, Street, Street Number, ZIP, City, Phone"
+        input <- getLine 
+        let x = wordsWhen(==',') input
+        let newPerson = makeItPerson x
+        if length x == 7 then start (contacts ++ [newPerson]) else putStrLn "Wrong input format!" >> start contacts
+        
+-- Nicely print a contact by ID
+printContact :: [Person] -> IO ()
+printContact contacts = do
+        putStrLn "Please Enter ID of contact"
+        id <- readLn
+        print (contacts !! (id :: Int))
+        start contacts
 
---     addContact oldContacts ++ (Person fName lName street streetNumber lzip city number)
+-- Find a contact by first name and print
+findByFirstName :: [Person] -> IO ()
+findByFirstName contacts = do
+        putStrLn "Please Enter First Name"
+        fName <- getLine
+        let matches = filter (\x -> firstName x == fName) contacts
+        if null matches then putStrLn "nothing found." else putStrLn "I found:" >> mapM_ print matches
+        start contacts
 
+-- Find a contact by last name and print
+findByLastName :: [Person] -> IO ()
+findByLastName contacts = do
+        putStrLn "Please Enter Last Name"
+        fName <- getLine
+        let matches = filter (\x -> lastName x == fName) contacts
+        if null matches then putStrLn "nothing found." else putStrLn "I found:" >> mapM_ print matches
+        start contacts
 
+-- Main Loop function --
 start :: [Person] -> IO()
 start contacts = do
     putStrLn "Please choose an Option below:"
     putStrLn "S = Show all contacts"
+    putStrLn "P = Print contact by ID"
     putStrLn "A = Add new contact"
     putStrLn "X = Search by first name"
     putStrLn "Y = Search by last name"
@@ -90,18 +111,29 @@ start contacts = do
     choice <- getLine
     processMenu choice contacts
 
-
+-- Valid main menu choices --
 mainChoices :: [Char]
 mainChoices = ['S', 's', 'A', 'a', 'X', 'x', 'Y', 'y', 'Q', 'q']
 
 processMenu :: String -> [Person] -> IO()
 processMenu choice contacts | choice == "S" || choice == "s" = putStrLn "== Showing all contacts ==" >> showContacts contacts
-                            | choice == "Q" || choice == "q" = putStrLn "Good bye!"
+                            | choice == "A" || choice == "a" = addContact contacts
+                            | choice == "Q" || choice == "q" = putStrLn "Good bye!" >> savePersons contacts
+                            | choice == "X" || choice == "x" = findByFirstName contacts
+                            | choice == "Y" || choice == "y" = findByLastName contacts
+                            | choice == "P" || choice == "p" = printContact contacts
                             | otherwise = putStrLn ("Unknown command " ++ choice) >> main
 
 
--- loadContacts
 
--- saveContacts
 
+
+
+-- helper functions
+-- Split Strings by delimiter, inspired by build in 'words' function:
+wordsWhen     :: (Char -> Bool) -> String -> [String]
+wordsWhen p s =  case dropWhile p s of
+                      "" -> []
+                      s' -> w : wordsWhen p s''
+                            where (w, s'') = break p s'
 main = loadContactsAsList
