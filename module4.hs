@@ -21,6 +21,7 @@ instance Show Person where
             "City: "  ++ lastName a ++ "\n" ++
             "Phone: " ++  phone a ++ "\n"
 
+savePerson :: Person -> [Char]
 savePerson a = firstName a ++ "," ++
             lastName a ++ "," ++
             aStreet a ++ "," ++
@@ -29,6 +30,7 @@ savePerson a = firstName a ++ "," ++
             city a ++ "," ++
             phone a
 
+printPerson :: Person -> [Char]
 printPerson a = firstName a ++ ", " ++
             lastName a ++ ", " ++
             aStreet a ++ ", " ++
@@ -98,6 +100,28 @@ findByLastName contacts = do
         if null matches then putStrLn "nothing found." else putStrLn "I found:" >> mapM_ print matches
         start contacts
 
+-- Delete a contact b ID
+deleteById :: [Person] -> IO ()
+deleteById contacts = do
+        putStrLn "Please Enter ID of contact to delete"
+        id <- readLn
+        if (id :: Int) > length contacts || (id :: Int) < 0 then putStrLn "Invalid ID!" >> start contacts else 
+                putStrLn "You have chosen:" >>
+                print (contacts !! (id :: Int)) >>
+                do 
+                  putStrLn "Delete this contact? (y/n)"
+                  choice <- getLine 
+                  if choice == "y" || choice == "yes" 
+                          then putStrLn "Deleting contact" 
+                               >> start (deleteAt (id :: Int) contacts) 
+                          else start contacts
+                    
+                       
+              
+deleteAt :: Int -> [a] -> [a]
+deleteAt idx xs = lft ++ rgt
+  where (lft, (_:rgt)) = splitAt idx xs 
+
 -- Main Loop function --
 start :: [Person] -> IO()
 start contacts = do
@@ -105,6 +129,7 @@ start contacts = do
     putStrLn "S = Show all contacts"
     putStrLn "P = Print contact by ID"
     putStrLn "A = Add new contact"
+    putStrLn "D = Delete Contact by ID"
     putStrLn "X = Search by first name"
     putStrLn "Y = Search by last name"
     putStrLn "Q = Save and Quit"
@@ -119,6 +144,7 @@ processMenu :: String -> [Person] -> IO()
 processMenu choice contacts | choice == "S" || choice == "s" = putStrLn "== Showing all contacts ==" >> showContacts contacts
                             | choice == "A" || choice == "a" = addContact contacts
                             | choice == "Q" || choice == "q" = putStrLn "Good bye!" >> savePersons contacts
+                            | choice == "D" || choice == "d" = deleteById contacts
                             | choice == "X" || choice == "x" = findByFirstName contacts
                             | choice == "Y" || choice == "y" = findByLastName contacts
                             | choice == "P" || choice == "p" = printContact contacts
