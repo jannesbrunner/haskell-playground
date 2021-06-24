@@ -1,5 +1,3 @@
-import Data.String
-
 -- Contact organizer
 
 -- DATA DEFINITION
@@ -43,7 +41,7 @@ showContacts :: [Person] -> IO()
 showContacts contacts =
         putStrLn "ID: First Name, Last Name, Street, Street Number, ZIP, City, Phone"
         >>
-        mapM_ (\x -> print ((show (fst x)) ++ ": " ++ (printPerson (snd x)))) ((zip [0 ..]) contacts)
+        mapM_ (\x -> print (show (fst x) ++ ": " ++ printPerson (snd x))) (zip [0 ..] contacts)
         >> start contacts
 
 -- loadContacts
@@ -69,11 +67,11 @@ addContact :: [Person] -> IO ()
 addContact contacts = do
         putStrLn "Please Enter new Contact details:"
         putStrLn "First Name, Last Name, Street, Street Number, ZIP, City, Phone"
-        input <- getLine 
+        input <- getLine
         let x = wordsWhen(==',') input
         let newPerson = makeItPerson x
         if length x == 7 then start (contacts ++ [newPerson]) else putStrLn "Wrong input format!" >> start contacts
-        
+
 -- Nicely print a contact by ID
 printContact :: [Person] -> IO ()
 printContact contacts = do
@@ -105,22 +103,22 @@ deleteById :: [Person] -> IO ()
 deleteById contacts = do
         putStrLn "Please Enter ID of contact to delete"
         id <- readLn
-        if (id :: Int) > length contacts || (id :: Int) < 0 then putStrLn "Invalid ID!" >> start contacts else 
+        if (id :: Int) > length contacts || (id :: Int) < 0 then putStrLn "Invalid ID!" >> start contacts else
                 putStrLn "You have chosen:" >>
                 print (contacts !! (id :: Int)) >>
-                do 
+                do
                   putStrLn "Delete this contact? (y/n)"
-                  choice <- getLine 
-                  if choice == "y" || choice == "yes" 
-                          then putStrLn "Deleting contact" 
-                               >> start (deleteAt (id :: Int) contacts) 
+                  choice <- getLine
+                  if choice == "y" || choice == "yes"
+                          then putStrLn "Deleting contact"
+                               >> start (deleteAt (id :: Int) contacts)
                           else start contacts
-                    
-                       
-              
+
+
+
 deleteAt :: Int -> [a] -> [a]
 deleteAt idx xs = lft ++ rgt
-  where (lft, (_:rgt)) = splitAt idx xs 
+  where (lft, (_:rgt)) = splitAt idx xs
 
 -- Main Loop function --
 start :: [Person] -> IO()
@@ -149,10 +147,6 @@ processMenu choice contacts | choice == "S" || choice == "s" = putStrLn "== Show
                             | choice == "Y" || choice == "y" = findByLastName contacts
                             | choice == "P" || choice == "p" = printContact contacts
                             | otherwise = putStrLn ("Unknown command " ++ choice) >> main
-
-
-
-
 
 
 -- helper functions
