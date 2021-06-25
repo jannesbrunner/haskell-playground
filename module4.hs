@@ -1,7 +1,23 @@
--- Contact organizer
+{--
+== Contact Organizer == June 2021
+This program let's you manage contacts. 
+Contacts get save to disk on every quit.
+Providing CRUD operations and nicely prints for contacts.
+
+Every Contact can have:
+- First Name
+- Last Name
+- Street
+- Street Number
+- ZIP
+- City
+- Phone
+
+--}
+
 
 -- DATA DEFINITION
-data Person = Person { firstName :: String,
+data Contact = Contact { firstName :: String,
                 lastName :: String,
                 aStreet :: String,
                 aNumber :: String,
@@ -10,7 +26,7 @@ data Person = Person { firstName :: String,
                 phone :: String
                 }
 
-instance Show Person where
+instance Show Contact where
    show a = "First Name: " ++ firstName a ++ "\n" ++
             "Last Name: " ++ lastName a ++ "\n" ++
             "Street: "  ++ aStreet a ++ "\n" ++
@@ -19,8 +35,9 @@ instance Show Person where
             "City: "  ++ city a ++ "\n" ++
             "Phone: " ++  phone a ++ "\n"
 
-savePerson :: Person -> String
-savePerson a = firstName a ++ "," ++
+-- One line String representation of a Contact
+stringifyContact :: Contact -> String
+stringifyContact a = firstName a ++ "," ++
             lastName a ++ "," ++
             aStreet a ++ "," ++
             aNumber a ++ "," ++
@@ -28,52 +45,46 @@ savePerson a = firstName a ++ "," ++
             city a ++ "," ++
             phone a
 
-printPerson :: Person -> String
-printPerson a = firstName a ++ ", " ++
-            lastName a ++ ", " ++
-            aStreet a ++ ", " ++
-            aNumber a ++ ", " ++
-            aZip a ++ ", " ++
-            city a ++ ", " ++
-            phone a
-
-showContacts :: [Person] -> IO()
+showContacts :: [Contact] -> IO()
 showContacts contacts =
         putStrLn "ID: First Name, Last Name, Street, Street Number, ZIP, City, Phone"
         >>
-        mapM_ (\x -> print (show (fst x) ++ ": " ++ printPerson (snd x))) (zip [0 ..] contacts)
-        >> start contacts
+        if length contacts == 0 
+                then putStrLn "No contacts!" >> start contacts 
+        else mapM_ (\x -> print (show (fst x) ++ ": " ++ stringifyContact (snd x))) (zip [0 ..] contacts) >> start contacts
+        
 
 -- loadContacts
 loadContactsAsList ::IO()
 loadContactsAsList = do
             contents <- readFile "./contacts.txt"
             let linesOfFiles = lines contents
-            let contacts = [makeItPerson (wordsWhen (==',') x) | x <- linesOfFiles]
-            start contacts
+            let contacts = [createContactByList (wordsWhen (==',') x) | x <- linesOfFiles]
+            if null contacts then start [] else start contacts
 
-makeItPerson :: [String] -> Person
-makeItPerson x = Person (head x) (x !! 1) (x !! 2) (x !! 3) (x !! 4) (x !! 5) (x !! 6)
+-- Create Contact data type by list of attributes
+createContactByList :: [String] -> Contact
+createContactByList x = Contact (head x) (x !! 1) (x !! 2) (x !! 3) (x !! 4) (x !! 5) (x !! 6)
 
--- saveContacts
-savePersons :: [Person] -> IO()
-savePersons contacts = do
-        let toSave = map savePerson contacts
-        let content = unlines toSave
+-- stringifyContacts (executed at quit)
+stringifyContacts :: [Contact] -> IO()
+stringifyContacts contacts = do
+        let tostringify = map stringifyContact contacts
+        let content = unlines tostringify
         writeFile "./contacts.txt" content
 
 -- Create a new contact in memory
-addContact :: [Person] -> IO ()
+addContact :: [Contact] -> IO ()
 addContact contacts = do
         putStrLn "Please Enter new Contact details:"
         putStrLn "First Name, Last Name, Street, Street Number, ZIP, City, Phone"
         input <- getLine
         let x = wordsWhen(==',') input
-        let newPerson = makeItPerson x
-        if length x == 7 then start (contacts ++ [newPerson]) else putStrLn "Wrong input format!" >> start contacts
+        let newContact = createContactByList x
+        if length x == 7 then start (contacts ++ [newContact]) else putStrLn "Wrong input format!" >> start contacts
 
 -- Nicely print a contact by ID
-printContact :: [Person] -> IO ()
+printContact :: [Contact] -> IO ()
 printContact contacts = do
         putStrLn "Please Enter ID of contact"
         id <- readLn
@@ -81,25 +92,25 @@ printContact contacts = do
         start contacts
 
 -- Find a contact by first name and print
-findByFirstName :: [Person] -> IO ()
+findByFirstName :: [Contact] -> IO ()
 findByFirstName contacts = do
         putStrLn "Please Enter First Name"
         fName <- getLine
-        let matches = filter (\x -> firstName x == fName) contacts
+        let matches = filter (\x -> uppercase (firstName x) == uppercase fName) contacts
         if null matches then putStrLn "nothing found." else putStrLn "I found:" >> mapM_ print matches
         start contacts
 
 -- Find a contact by last name and print
-findByLastName :: [Person] -> IO ()
+findByLastName :: [Contact] -> IO ()
 findByLastName contacts = do
         putStrLn "Please Enter Last Name"
         fName <- getLine
-        let matches = filter (\x -> lastName x == fName) contacts
+        let matches = filter (\x -> uppercase (lastName x) == uppercase fName) contacts
         if null matches then putStrLn "nothing found." else putStrLn "I found:" >> mapM_ print matches
         start contacts
 
 -- Delete a contact by ID
-deleteById :: [Person] -> IO ()
+deleteById :: [Contact] -> IO ()
 deleteById contacts = do
         putStrLn "Please Enter ID of contact to delete"
         id <- readLn
@@ -117,7 +128,7 @@ deleteById contacts = do
 
 
 -- Edit a contact by ID
-editContact :: [Person] -> IO ()
+editContact :: [Contact] -> IO ()
 editContact contacts = do
         putStr "ID of contact to edit: "
         id <- readLn
@@ -129,40 +140,35 @@ editContact contacts = do
                 choice <- getLine
                 if choice == "y" || choice == "yes"
                         then putStrLn "Starting Editor" >> do
-                                let oldPerson = contacts !! (id :: Int)
-                                mapM_ putStr ["First Name [", firstName oldPerson, "]: "]
+                                let oldContact = contacts !! (id :: Int)
+                                mapM_ putStr ["First Name [", firstName oldContact, "]: "]
                                 nName <- getLine
-                                mapM_ putStr ["Last Name [", lastName oldPerson, "]: "]
+                                mapM_ putStr ["Last Name [", lastName oldContact, "]: "]
                                 nLastName <- getLine
-                                mapM_ putStr ["Street [", aStreet oldPerson, "]: "]
+                                mapM_ putStr ["Street [", aStreet oldContact, "]: "]
                                 nStreet <- getLine
-                                mapM_ putStr ["Street Number [", aNumber oldPerson, "]: "]
+                                mapM_ putStr ["Street Number [", aNumber oldContact, "]: "]
                                 nStreetNumber <- getLine
-                                mapM_ putStr ["ZIP [", aZip oldPerson, "]: "]
+                                mapM_ putStr ["ZIP [", aZip oldContact, "]: "]
                                 nZip <- getLine
-                                mapM_ putStr ["City [", city oldPerson, "]: "]
+                                mapM_ putStr ["City [", city oldContact, "]: "]
                                 nCity <- getLine
-                                mapM_ putStr ["Phone [", phone oldPerson, "]: "]
+                                mapM_ putStr ["Phone [", phone oldContact, "]: "]
                                 nPhone <- getLine
-                                let newPerson = Person{firstName = if null nName then firstName oldPerson else nName, 
-                                                       lastName = if null nLastName then lastName oldPerson else nStreet,
-                                                       aStreet = if null nStreetNumber then aStreet oldPerson else nStreetNumber,
-                                                       aNumber = if null nStreetNumber then aStreet oldPerson else nStreetNumber,
-                                                       aZip = if null nZip then aZip oldPerson else nCity,
-                                                       city = if null nCity then city oldPerson else nCity,
-                                                       phone = if null nPhone then phone oldPerson else nPhone
+                                let newContact = Contact{firstName = if null nName then firstName oldContact else nName,
+                                                       lastName = if null nLastName then lastName oldContact else nLastName,
+                                                       aStreet = if null nStreet then aStreet oldContact else nStreet,
+                                                       aNumber = if null nStreetNumber then aNumber oldContact else nStreetNumber,
+                                                       aZip = if null nZip then aZip oldContact else nZip,
+                                                       city = if null nCity then city oldContact else nCity,
+                                                       phone = if null nPhone then phone oldContact else nPhone
                                                 }
-                                
-                                let newContacts = replaceNthPerson (id :: Int) newPerson contacts
+                                let newContacts = replaceNthContact (id :: Int) newContact contacts
                                 start newContacts
                         else start contacts
 
-deleteAt :: Int -> [a] -> [a]
-deleteAt idx xs = lft ++ rgt
-  where (lft, _:rgt) = splitAt idx xs
-
 -- Main Loop function --
-start :: [Person] -> IO()
+start :: [Contact] -> IO()
 start contacts = do
     putStrLn "Please choose an Option below:"
     putStrLn "S = Show all contacts"
@@ -172,19 +178,20 @@ start contacts = do
     putStrLn "E = Edit Contact by ID"
     putStrLn "X = Search by first name"
     putStrLn "Y = Search by last name"
-    putStrLn "Q = Save and Quit"
+    putStrLn "Q = stringify and Quit"
     choice <- getLine
     processMenu choice contacts
 
--- Valid main menu choices --
+-- Valid main menu choices
 mainChoices :: String
 mainChoices = ['S', 's', 'A', 'a', 'X', 'x', 'Y', 'y', 'Q', 'q']
 
-processMenu :: String -> [Person] -> IO()
+-- Process user main menu choice
+processMenu :: String -> [Contact] -> IO()
 processMenu choice contacts | choice == "S" || choice == "s" = putStrLn "== Showing all contacts ==" >> showContacts contacts
                             | choice == "A" || choice == "a" = addContact contacts
                             | choice == "E" || choice == "e" = editContact contacts
-                            | choice == "Q" || choice == "q" = putStrLn "Good bye!" >> savePersons contacts
+                            | choice == "Q" || choice == "q" = putStrLn "Good bye!" >> stringifyContacts contacts
                             | choice == "D" || choice == "d" = deleteById contacts
                             | choice == "X" || choice == "x" = findByFirstName contacts
                             | choice == "Y" || choice == "y" = findByLastName contacts
@@ -192,18 +199,30 @@ processMenu choice contacts | choice == "S" || choice == "s" = putStrLn "== Show
                             | otherwise = putStrLn ("Unknown command " ++ choice) >> main
 
 
--- helper functions
--- Split Strings by delimiter, inspired by build in 'words' function:
+-- helper functions --
+
+-- Split Strings by delimiter, inspired by built in 'words' function:
 wordsWhen     :: (Char -> Bool) -> String -> [String]
 wordsWhen p s =  case dropWhile p s of
                       "" -> []
                       s' -> w : wordsWhen p s''
                             where (w, s'') = break p s'
-main = loadContactsAsList
 
--- Change a person in place
-replaceNthPerson :: Int -> Person -> [Person] -> [Person]
-replaceNthPerson _ _ [] = []
-replaceNthPerson n newPerson (x:xs)
-   | n == 0 = newPerson:xs
-   | otherwise = x:replaceNthPerson (n-1) newPerson xs
+
+-- Change a Contact/contact in place
+replaceNthContact :: Int -> Contact -> [Contact] -> [Contact]
+replaceNthContact _ _ [] = []
+replaceNthContact n newContact (x:xs)
+   | n == 0 = newContact:xs
+   | otherwise = x:replaceNthContact (n-1) newContact xs
+
+-- Remove entry from list a given position
+deleteAt :: Int -> [a] -> [a]
+deleteAt idx xs = lft ++ rgt
+  where (lft, _:rgt) = splitAt idx xs
+
+-- Make a string uppercase
+uppercase :: String -> String
+uppercase = map (\c -> if c >= 'a' && c <= 'z' then toEnum (fromEnum c - 32) else c)
+
+main = loadContactsAsList
