@@ -27,13 +27,13 @@ data Contact = Contact { firstName :: String,
                 }
 
 instance Show Contact where
-   show a = "First Name: " ++ firstName a ++ "\n" ++
-            "Last Name: " ++ lastName a ++ "\n" ++
-            "Street: "  ++ aStreet a ++ "\n" ++
+   show a = "First Name:    " ++ firstName a ++ "\n" ++
+            "Last Name:     " ++ lastName a ++ "\n" ++
+            "Street:        "  ++ aStreet a ++ "\n" ++
             "Street Number: "  ++ aNumber a ++ "\n" ++
-            "ZIP: "  ++ aZip a ++ "\n" ++
-            "City: "  ++ city a ++ "\n" ++
-            "Phone: " ++  phone a ++ "\n"
+            "ZIP:           "  ++ aZip a ++ "\n" ++
+            "City:          "  ++ city a ++ "\n" ++
+            "Phone:         " ++  phone a ++ "\n"
 
 -- One line String representation of a Contact
 stringifyContact :: Contact -> String
@@ -105,6 +105,7 @@ printContact contacts = do
                 then putStrLn "No contacts!" >> start contacts else do
         putStrLn "Please Enter ID of contact"
         id <- readLn
+        putStrLn ""
         if not (isValidId contacts id) then putStrLn "Invalid id!" >> start contacts else do
         print (contacts !! (id :: Int))
         start contacts
@@ -114,10 +115,10 @@ findByFirstName :: [Contact] -> IO ()
 findByFirstName contacts = do
         putStrLn "== Delete a contact =="
         putStrLn "Please Enter First Name"
-        putStr "> "
         fName <- getLine
+        putStrLn ""
         let matches = filter (\x -> uppercase (firstName x) == uppercase fName) contacts
-        if null matches then putStrLn "nothing found." else putStrLn "I found:" >> mapM_ print matches
+        if null matches then putStrLn "nothing found." else putStrLn "Results: \n" >> mapM_ print matches
         start contacts
 
 -- Find a contact by last name and print
@@ -125,10 +126,10 @@ findByLastName :: [Contact] -> IO ()
 findByLastName contacts = do
         putStrLn "== Delete a contact =="
         putStrLn "Please Enter Last Name"
-        putStr "> "
         fName <- getLine
+        putStrLn ""
         let matches = filter (\x -> uppercase (lastName x) == uppercase fName) contacts
-        if null matches then putStrLn "nothing found." else putStrLn "I found:" >> mapM_ print matches
+        if null matches then putStrLn "nothing found." else putStrLn "Results: \n" >> mapM_ print matches
         start contacts
 
 -- Delete a contact by ID
