@@ -95,13 +95,17 @@ addContact contacts = do
         let newContact = createContactByList x
         if length x == 7 then start (contacts ++ [newContact]) else putStrLn "Wrong input format!" >> start contacts
 
+
+
 -- Nicely print a contact by ID
 printContact :: [Contact] -> IO ()
 printContact contacts = do
         putStrLn "== Print a contact =="
+        if length contacts == 0
+                then putStrLn "No contacts!" >> start contacts else do
         putStrLn "Please Enter ID of contact"
-        putStr "> "
         id <- readLn
+        if not (isValidId contacts id) then putStrLn "Invalid id!" >> start contacts else do
         print (contacts !! (id :: Int))
         start contacts
 
@@ -134,7 +138,7 @@ deleteById contacts = do
         putStrLn "Please Enter ID of contact to delete: "
         putStr "> "
         id <- readLn
-        if (id :: Int) > length contacts || (id :: Int) < 0 then putStrLn "Invalid ID!" >> start contacts else
+        if not (isValidId contacts id) then putStrLn "Invalid ID!" >> start contacts else
                 putStrLn "You have chosen:" >>
                 print (contacts !! (id :: Int)) >>
                 do
@@ -152,38 +156,29 @@ editContact :: [Contact] -> IO ()
 editContact contacts = do
         putStrLn "== Edit a contact =="
         putStrLn "ID of contact to edit"
-        putStr "> "
         id <- readLn
-        if (id :: Int) > length contacts || (id :: Int) < 0 then putStrLn  "Invalid ID!" >> start contacts else
+        if not (isValidId contacts id) then putStrLn  "Invalid ID!" >> start contacts else
              putStrLn "You have chosen:" >>
              print (contacts !! (id :: Int)) >>
              do
                 putStrLn "Edit this contact? (y/n)"
-                putStr "> "
                 choice <- getLine
                 if choice == "y" || choice == "yes"
                         then putStrLn "Starting Editor" >> do
                                 let oldContact = contacts !! (id :: Int)
                                 mapM_ putStr ["First Name [", firstName oldContact, "]: "]
-                                putStr "> "
                                 nName <- getLine
                                 mapM_ putStr ["Last Name [", lastName oldContact, "]: "]
-                                putStr "> "
                                 nLastName <- getLine
                                 mapM_ putStr ["Street [", aStreet oldContact, "]: "]
-                                putStr "> "
                                 nStreet <- getLine
                                 mapM_ putStr ["Street Number [", aNumber oldContact, "]: "]
-                                putStr "> "
                                 nStreetNumber <- getLine
                                 mapM_ putStr ["ZIP [", aZip oldContact, "]: "]
-                                putStr "> "
                                 nZip <- getLine
                                 mapM_ putStr ["City [", city oldContact, "]: "]
-                                putStr "> "
                                 nCity <- getLine
                                 mapM_ putStr ["Phone [", phone oldContact, "]: "]
-                                putStr "> "
                                 nPhone <- getLine
                                 let newContact = Contact{firstName = if null nName then firstName oldContact else filterWhitespace nName,
                                                        lastName = if null nLastName then lastName oldContact else filterWhitespace nLastName,
@@ -210,7 +205,6 @@ start contacts = do
     putStrLn "X = Search by first name"
     putStrLn "Y = Search by last name"
     putStrLn "Q = stringify and Quit"
-    putStr "> "
     choice <- getLine
     putStrLn ""
     processMenu choice contacts
@@ -254,6 +248,10 @@ deleteAt :: Int -> [a] -> [a]
 deleteAt idx xs = lft ++ rgt
   where (lft, _:rgt) = splitAt idx xs
 
+-- Check if id is a valid index
+isValidId :: [Contact] -> Int -> Bool
+isValidId contacts id = not ((id :: Int) > length contacts -1 || (id :: Int) < 0)
+
 -- Make a string uppercase
 uppercase :: String -> String
 uppercase = map (\c -> if c >= 'a' && c <= 'z' then toEnum (fromEnum c - 32) else c)
@@ -269,4 +267,5 @@ addTailWhitespace :: [Char] -> [Char]
 addTailWhitespace input | fromEnum (last input) /= 32 = input ++ [toEnum 32]
                         | otherwise = input
 
-main = loadContactsAsList
+
+main = putStrLn "*** Welcome to Contact Organizer ***" >> loadContactsAsList
