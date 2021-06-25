@@ -79,7 +79,7 @@ addContact contacts = do
         putStrLn "Please Enter new Contact details:"
         putStrLn "First Name, Last Name, Street, Street Number, ZIP, City, Phone"
         input <- getLine
-        let x = wordsWhen(==',') input
+        let x = map filterWhitespace (wordsWhen(==',') input)
         let newContact = createContactByList x
         if length x == 7 then start (contacts ++ [newContact]) else putStrLn "Wrong input format!" >> start contacts
 
@@ -155,13 +155,13 @@ editContact contacts = do
                                 nCity <- getLine
                                 mapM_ putStr ["Phone [", phone oldContact, "]: "]
                                 nPhone <- getLine
-                                let newContact = Contact{firstName = if null nName then firstName oldContact else nName,
-                                                       lastName = if null nLastName then lastName oldContact else nLastName,
-                                                       aStreet = if null nStreet then aStreet oldContact else nStreet,
-                                                       aNumber = if null nStreetNumber then aNumber oldContact else nStreetNumber,
-                                                       aZip = if null nZip then aZip oldContact else nZip,
-                                                       city = if null nCity then city oldContact else nCity,
-                                                       phone = if null nPhone then phone oldContact else nPhone
+                                let newContact = Contact{firstName = if null nName then firstName oldContact else filterWhitespace nName,
+                                                       lastName = if null nLastName then lastName oldContact else filterWhitespace nLastName,
+                                                       aStreet = if null nStreet then aStreet oldContact else filterWhitespace nStreet,
+                                                       aNumber = if null nStreetNumber then aNumber oldContact else filterWhitespace nStreetNumber,
+                                                       aZip = if null nZip then aZip oldContact else filterWhitespace nZip,
+                                                       city = if null nCity then city oldContact else filterWhitespace nCity,
+                                                       phone = if null nPhone then phone oldContact else filterWhitespace nPhone
                                                 }
                                 let newContacts = replaceNthContact (id :: Int) newContact contacts
                                 start newContacts
@@ -224,5 +224,11 @@ deleteAt idx xs = lft ++ rgt
 -- Make a string uppercase
 uppercase :: String -> String
 uppercase = map (\c -> if c >= 'a' && c <= 'z' then toEnum (fromEnum c - 32) else c)
+
+-- Remove whitespace tail and head
+filterWhitespace :: [Char] -> [Char]
+filterWhitespace input | fromEnum (head input) == 32 = filterWhitespace (tail input)
+                       | fromEnum (last input) == 32 = filterWhitespace (init input)
+                       | otherwise = input
 
 main = loadContactsAsList
