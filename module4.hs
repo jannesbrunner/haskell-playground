@@ -45,13 +45,23 @@ stringifyContact a = firstName a ++ "," ++
             city a ++ "," ++
             phone a
 
+-- ... with whitespace (better readability)
+stringifyContactWs :: Contact -> String
+stringifyContactWs a = firstName a ++ ", " ++
+            lastName a ++ ", " ++
+            aStreet a ++ ", " ++
+            aNumber a ++ ", " ++
+            aZip a ++ ", " ++
+            city a ++ ", " ++
+            phone a 
+
 showContacts :: [Contact] -> IO()
 showContacts contacts =
         putStrLn "ID: First Name, Last Name, Street, Street Number, ZIP, City, Phone"
         >>
         if length contacts == 0 
                 then putStrLn "No contacts!" >> start contacts 
-        else mapM_ (\x -> print (show (fst x) ++ ": " ++ stringifyContact (snd x))) (zip [0 ..] contacts) >> start contacts
+        else mapM_ (\x -> print (show (fst x) ++ ": " ++ stringifyContactWs (snd x))) (zip [0 ..] contacts) >> start contacts
         
 
 -- loadContacts
@@ -230,5 +240,10 @@ filterWhitespace :: [Char] -> [Char]
 filterWhitespace input | fromEnum (head input) == 32 = filterWhitespace (tail input)
                        | fromEnum (last input) == 32 = filterWhitespace (init input)
                        | otherwise = input
+
+-- Add whitespace at tail
+addTailWhitespace :: [Char] -> [Char]
+addTailWhitespace input | fromEnum (last input) /= 32 = input ++ [toEnum 32]
+                        | otherwise = input
 
 main = loadContactsAsList
