@@ -53,16 +53,16 @@ stringifyContactWs a = firstName a ++ ", " ++
             aNumber a ++ ", " ++
             aZip a ++ ", " ++
             city a ++ ", " ++
-            phone a 
+            phone a
 
 showContacts :: [Contact] -> IO()
 showContacts contacts =
         putStrLn "ID: First Name, Last Name, Street, Street Number, ZIP, City, Phone"
         >>
-        if length contacts == 0 
-                then putStrLn "No contacts!" >> start contacts 
+        if length contacts == 0
+                then putStrLn "No contacts!" >> start contacts
         else mapM_ (\x -> print (show (fst x) ++ ": " ++ stringifyContactWs (snd x))) (zip [0 ..] contacts) >> start contacts
-        
+
 
 -- loadContacts
 loadContactsAsList ::IO()
@@ -76,9 +76,9 @@ loadContactsAsList = do
 createContactByList :: [String] -> Contact
 createContactByList x = Contact (head x) (x !! 1) (x !! 2) (x !! 3) (x !! 4) (x !! 5) (x !! 6)
 
--- stringifyContacts (executed at quit)
-stringifyContacts :: [Contact] -> IO()
-stringifyContacts contacts = do
+-- saveContacts (executed at quit)
+saveContacts :: [Contact] -> IO()
+saveContacts contacts = do
         let tostringify = map stringifyContact contacts
         let content = unlines tostringify
         writeFile "./contacts.txt" content
@@ -86,8 +86,10 @@ stringifyContacts contacts = do
 -- Create a new contact in memory
 addContact :: [Contact] -> IO ()
 addContact contacts = do
+        putStrLn "== Add a new contact =="
         putStrLn "Please Enter new Contact details:"
         putStrLn "First Name, Last Name, Street, Street Number, ZIP, City, Phone"
+        putStr "> "
         input <- getLine
         let x = map filterWhitespace (wordsWhen(==',') input)
         let newContact = createContactByList x
@@ -96,7 +98,9 @@ addContact contacts = do
 -- Nicely print a contact by ID
 printContact :: [Contact] -> IO ()
 printContact contacts = do
+        putStrLn "== Print a contact =="
         putStrLn "Please Enter ID of contact"
+        putStr "> "
         id <- readLn
         print (contacts !! (id :: Int))
         start contacts
@@ -104,7 +108,9 @@ printContact contacts = do
 -- Find a contact by first name and print
 findByFirstName :: [Contact] -> IO ()
 findByFirstName contacts = do
+        putStrLn "== Delete a contact =="
         putStrLn "Please Enter First Name"
+        putStr "> "
         fName <- getLine
         let matches = filter (\x -> uppercase (firstName x) == uppercase fName) contacts
         if null matches then putStrLn "nothing found." else putStrLn "I found:" >> mapM_ print matches
@@ -113,7 +119,9 @@ findByFirstName contacts = do
 -- Find a contact by last name and print
 findByLastName :: [Contact] -> IO ()
 findByLastName contacts = do
+        putStrLn "== Delete a contact =="
         putStrLn "Please Enter Last Name"
+        putStr "> "
         fName <- getLine
         let matches = filter (\x -> uppercase (lastName x) == uppercase fName) contacts
         if null matches then putStrLn "nothing found." else putStrLn "I found:" >> mapM_ print matches
@@ -122,7 +130,9 @@ findByLastName contacts = do
 -- Delete a contact by ID
 deleteById :: [Contact] -> IO ()
 deleteById contacts = do
-        putStrLn "Please Enter ID of contact to delete"
+        putStrLn "== Delete a contact =="
+        putStrLn "Please Enter ID of contact to delete: "
+        putStr "> "
         id <- readLn
         if (id :: Int) > length contacts || (id :: Int) < 0 then putStrLn "Invalid ID!" >> start contacts else
                 putStrLn "You have chosen:" >>
@@ -140,30 +150,40 @@ deleteById contacts = do
 -- Edit a contact by ID
 editContact :: [Contact] -> IO ()
 editContact contacts = do
-        putStr "ID of contact to edit: "
+        putStrLn "== Edit a contact =="
+        putStrLn "ID of contact to edit"
+        putStr "> "
         id <- readLn
-        if (id :: Int) > length contacts || (id :: Int) < 0 then putStrLn "Invalid ID!" >> start contacts else
+        if (id :: Int) > length contacts || (id :: Int) < 0 then putStrLn  "Invalid ID!" >> start contacts else
              putStrLn "You have chosen:" >>
              print (contacts !! (id :: Int)) >>
              do
                 putStrLn "Edit this contact? (y/n)"
+                putStr "> "
                 choice <- getLine
                 if choice == "y" || choice == "yes"
                         then putStrLn "Starting Editor" >> do
                                 let oldContact = contacts !! (id :: Int)
                                 mapM_ putStr ["First Name [", firstName oldContact, "]: "]
+                                putStr "> "
                                 nName <- getLine
                                 mapM_ putStr ["Last Name [", lastName oldContact, "]: "]
+                                putStr "> "
                                 nLastName <- getLine
                                 mapM_ putStr ["Street [", aStreet oldContact, "]: "]
+                                putStr "> "
                                 nStreet <- getLine
                                 mapM_ putStr ["Street Number [", aNumber oldContact, "]: "]
+                                putStr "> "
                                 nStreetNumber <- getLine
                                 mapM_ putStr ["ZIP [", aZip oldContact, "]: "]
+                                putStr "> "
                                 nZip <- getLine
                                 mapM_ putStr ["City [", city oldContact, "]: "]
+                                putStr "> "
                                 nCity <- getLine
                                 mapM_ putStr ["Phone [", phone oldContact, "]: "]
+                                putStr "> "
                                 nPhone <- getLine
                                 let newContact = Contact{firstName = if null nName then firstName oldContact else filterWhitespace nName,
                                                        lastName = if null nLastName then lastName oldContact else filterWhitespace nLastName,
@@ -180,7 +200,8 @@ editContact contacts = do
 -- Main Loop function --
 start :: [Contact] -> IO()
 start contacts = do
-    putStrLn "Please choose an Option below:"
+    putStrLn ""
+    putStrLn "== Please choose an Option below =="
     putStrLn "S = Show all contacts"
     putStrLn "P = Print contact by ID"
     putStrLn "A = Add new contact"
@@ -189,7 +210,9 @@ start contacts = do
     putStrLn "X = Search by first name"
     putStrLn "Y = Search by last name"
     putStrLn "Q = stringify and Quit"
+    putStr "> "
     choice <- getLine
+    putStrLn ""
     processMenu choice contacts
 
 -- Valid main menu choices
@@ -201,7 +224,7 @@ processMenu :: String -> [Contact] -> IO()
 processMenu choice contacts | choice == "S" || choice == "s" = putStrLn "== Showing all contacts ==" >> showContacts contacts
                             | choice == "A" || choice == "a" = addContact contacts
                             | choice == "E" || choice == "e" = editContact contacts
-                            | choice == "Q" || choice == "q" = putStrLn "Good bye!" >> stringifyContacts contacts
+                            | choice == "Q" || choice == "q" = putStrLn "Good bye!" >> saveContacts contacts
                             | choice == "D" || choice == "d" = deleteById contacts
                             | choice == "X" || choice == "x" = findByFirstName contacts
                             | choice == "Y" || choice == "y" = findByLastName contacts
