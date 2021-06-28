@@ -205,7 +205,7 @@ start contacts = do
     putStrLn "E = Edit Contact by ID"
     putStrLn "X = Search by first name"
     putStrLn "Y = Search by last name"
-    putStrLn "Q = stringify and Quit"
+    putStrLn "Q = Save and Quit"
     choice <- getLine
     putStrLn ""
     processMenu choice contacts
